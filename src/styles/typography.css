@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Great+Vibes&display=swap');
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.08;
+  color: var(--deep-brown);
+}
+
+.eyebrow {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: italic;
+  font-size: clamp(3rem, 8vw, 7.5rem);
+  line-height: 1;
+}
+
+.section-heading {
+  font-size: clamp(2rem, 4.2vw, 3.4rem);
+}
+
+.body-measure {
+  max-width: var(--measure);
+}
+
+p {
+  color: var(--ink);
+}
+
+a {
+  color: inherit;
+}

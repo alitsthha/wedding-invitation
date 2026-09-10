@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scroll Envelope · Full Page</title>
+    <style>
+        /* === Reset & base === */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #d9edf5;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            overflow-x: hidden;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        /* === Fixed full‑page envelope wrapper === */
+        .envlope-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            /* allow scroll to pass through */;
+            z-index: 10;
+            background-color: #d9edf5;
+            /* matches body */;
+        }
+
+        /* ===== Envelope (larger) ===== */
+        #envelope {
+            position: relative;
+            width: 420px;
+            /* increased from 280px */
+            height: 270px;
+            /* increased from 180px */
+            border-bottom-left-radius: 8px;
+            /* slightly larger radius */;
+            border-bottom-right-radius: 8px;
+            background-color: #003d66;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, .25);
+            pointer-events: auto;
+            transition: none;
+        }
+
+        /* ===== Front layers ===== */
+        .front {
+            position: absolute;
+            width: 0;
+            height: 0;
+            z-index: 3;
+        }
+
+        /* ===== Flap (top triangle) ===== */
+        .flap {
+            border-left: 210px solid transparent;
+            /* $env-width / 2 */
+            border-right: 210px solid transparent;
+            border-bottom: 127px solid transparent;
+            /* ($env-height / 2) - 8 ≈ 135 - 8 = 127 */
+            border-top: 143px solid #003d66;
+            /* ($env-height / 2) + 8 = 135 + 8 = 143 */
+            transform-origin: top;
+            pointer-events: none;
+        }
+
+        /* ===== Pocket (bottom triangle) ===== */
+        .pocket {
+            border-left: 210px solid #0077B2;
+            border-right: 210px solid #0077B2;
+            border-bottom: 135px solid #006699;
+            /* $env-height / 2 */
+            border-top: 135px solid transparent;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        /* ===== Letter ===== */
+        .letter {
+            position: relative;
+            background-color: #fff;
+            width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+            height: 90%;
+            top: 5%;
+            border-radius: 8px;
+            box-shadow: 0 2px 26px rgba(0, 0, 0, .12);
+            z-index: 1;
+            transition: transform .4s ease, z-index 1s;
+        }
+
+        .letter::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            border-radius: 8px;
+            background-image:
+                linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.00) 25%,
+                    rgba(215, 227, 239, 0.70) 55%,
+                    rgba(215, 227, 239, 1.00) 100%);
+            pointer-events: none;
+        }
+
+        /* ===== Words (dummy text lines) ===== */
+        .words {
+            position: absolute;
+            left: 10%;
+            width: 80%;
+            height: 14%;
+            background-color: #EEEFF0;
+            border-radius: 4px;
+        }
+        .words.line1 {
+            top: 15%;
+            width: 20%;
+            height: 7%;
+        }
+        .words.line2 {
+            top: 30%;
+        }
+        .words.line3 {
+            top: 50%;
+        }
+        .words.line4 {
+            top: 70%;
+        }
+
+        /* ===== Heart container ===== */
+        .hearts {
+            position: absolute;
+            top: 135px;
+            /* $env-height / 2 */
+            left: 0;
+            right: 0;
+            z-index: 2;
+            pointer-events: none;
+            overflow: visible;
+        }
+
+        /* ===== Individual heart (larger) ===== */
+        .heart {
+            position: absolute;
+            bottom: 0;
+            right: 10%;
+            pointer-events: none;
+            width: 70px;
+            /* increased from 50px */
+            height: 112px;
+            /* 70 * 1.6 */
+        }
+
+        .heart::before,
+        .heart::after {
+            position: absolute;
+            content: "";
+            top: 0;
+            width: 70px;
+            height: 112px;
+            background: #D00000;
+            border-radius: 70px 70px 0 0;
+            pointer-events: none;
+        }
+
+        .heart::before {
+            left: 70px;
+            transform: rotate(-45deg);
+            transform-origin: 0 100%;
+        }
+
+        .heart::after {
+            left: 0;
+            transform: rotate(45deg);
+            transform-origin: 100% 100%;
+        }
+
+        /* ===== Heart positions & animations ===== */
+        .close .heart {
+            opacity: 0;
+            animation: none !important;
+        }
+
+        .a1 {
+            left: 18%;
+            transform: scale(0.6);
+            opacity: 1;
+            animation:
+                slideUp 4s linear 1 forwards,
+                sideSway 2s ease-in-out 4 alternate forwards;
+            animation-delay: .7s;
+        }
+
+        .a2 {
+            left: 55%;
+            transform: scale(1);
+            opacity: 1;
+            animation:
+                slideUp 5s linear 1 forwards,
+                sideSway 4s ease-in-out 2 alternate forwards;
+            animation-delay: .7s;
+        }
+
+        .a3 {
+            left: 8%;
+            transform: scale(0.8);
+            opacity: 1;
+            animation:
+                slideUp 7s linear 1 forwards,
+                sideSway 2s ease-in-out 6 alternate forwards;
+            animation-delay: .7s;
+        }
+
+        @keyframes slideUp {
+            0% {
+                top: 0;
+            }
+            100% {
+                top: -700px;
+                /* increased from -600px for larger hearts */;
+            }
+        }
+
+        @keyframes sideSway {
+            0% {
+                margin-left: 0px;
+            }
+            100% {
+                margin-left: 60px;
+                /* slightly more sway */;
+            }
+        }
+
+        /* ===== State: OPEN ===== */
+        .open .flap {
+            transform: rotateX(180deg);
+            transition: transform .4s ease, z-index .6s;
+            z-index: 1;
+        }
+
+        .open .letter {
+            transform: translateY(-90px);
+            /* -($env-height / 3) ≈ -90px */
+            transition: transform .4s .6s ease, z-index .6s;
+            z-index: 2;
+        }
+
+        /* ===== State: CLOSE ===== */
+        .close .flap {
+            transform: rotateX(0deg);
+            transition: transform .4s .6s ease, z-index 1s;
+            z-index: 5;
+        }
+
+        .close .letter {
+            transform: translateY(0px);
+            transition: transform .4s ease, z-index 1s;
+            z-index: 1;
+        }
+
+        /* ===== Scroll spacer (provides scroll height) ===== */
+        .scroll-spacer {
+            height: 200vh;
+            width: 1px;
+            background: transparent;
+        }
+
+        /* ===== Hint text at bottom ===== */
+        .scroll-hint {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.1rem;
+            color: #0077B2;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.75);
+            padding: 8px 28px;
+            border-radius: 40px;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            z-index: 20;
+            pointer-events: none;
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+        }
+
+        /* ===== Responsive tweaks for larger envelope ===== */
+        @media (max-width: 500px) {
+            #envelope {
+                width: 320px;
+                height: 206px;
+            }
+            .flap {
+                border-left-width: 160px;
+                border-right-width: 160px;
+                border-bottom-width: 95px;
+                border-top-width: 111px;
+            }
+            .pocket {
+                border-left-width: 160px;
+                border-right-width: 160px;
+                border-bottom-width: 103px;
+                border-top-width: 103px;
+            }
+            .hearts {
+                top: 103px;
+            }
+            .open .letter {
+                transform: translateY(-69px);
+            }
+            .heart {
+                width: 54px;
+                height: 86px;
+            }
+            .heart::before,
+            .heart::after {
+                width: 54px;
+                height: 86px;
+                border-radius: 54px 54px 0 0;
+            }
+            .heart::before {
+                left: 54px;
+            }
+            .a1 {
+                left: 16%;
+            }
+            .a3 {
+                left: 6%;
+            }
+            @keyframes slideUp {
+                0% { top: 0; }
+                100% { top: -550px; }
+            }
+            @keyframes sideSway {
+                0% { margin-left: 0px; }
+                100% { margin-left: 45px; }
+            }
+            .scroll-hint {
+                font-size: 0.9rem;
+                padding: 6px 18px;
+                bottom: 20px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            #envelope {
+                width: 260px;
+                height: 167px;
+            }
+            .flap {
+                border-left-width: 130px;
+                border-right-width: 130px;
+                border-bottom-width: 75px;
+                border-top-width: 91px;
+            }
+            .pocket {
+                border-left-width: 130px;
+                border-right-width: 130px;
+                border-bottom-width: 83px;
+                border-top-width: 83px;
+            }
+            .hearts {
+                top: 83px;
+            }
+            .open .letter {
+                transform: translateY(-56px);
+            }
+            .heart {
+                width: 44px;
+                height: 70px;
+            }
+            .heart::before,
+            .heart::after {
+                width: 44px;
+                height: 70px;
+                border-radius: 44px 44px 0 0;
+            }
+            .heart::before {
+                left: 44px;
+            }
+            .a1 {
+                left: 14%;
+            }
+            .a3 {
+                left: 4%;
+            }
+            @keyframes slideUp {
+                0% { top: 0; }
+                100% { top: -450px; }
+            }
+            @keyframes sideSway {
+                0% { margin-left: 0px; }
+                100% { margin-left: 35px; }
+            }
+            .words {
+                height: 12%;
+            }
+            .words.line1 {
+                height: 5%;
+                width: 16%;
+            }
+            .scroll-hint {
+                font-size: 0.8rem;
+                padding: 4px 14px;
+                bottom: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Invisible spacer to enable scrolling -->
+    <div class="scroll-spacer"></div>
+
+    <!-- Fixed full‑page envelope wrapper -->
+    <div class="envlope-wrapper">
+        <div id="envelope" class="close">
+            <div class="front flap"></div>
+            <div class="front pocket"></div>
+            <div class="letter">
+                <div class="words line1"></div>
+                <div class="words line2"></div>
+                <div class="words line3"></div>
+                <div class="words line4"></div>
+            </div>
+            <div class="hearts">
+                <div class="heart a1"></div>
+                <div class="heart a2"></div>
+                <div class="heart a3"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="scroll-hint">↓ Scroll down to open · Scroll up to close ↓</div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            var envelope = document.getElementById('envelope');
+            var SCROLL_THRESHOLD = 120;
+
+            function updateEnvelope() {
+                var scrollY = window.scrollY || window.pageYOffset || 0;
+                if (scrollY > SCROLL_THRESHOLD) {
+                    envelope.classList.add('open');
+                    envelope.classList.remove('close');
+                } else {
+                    envelope.classList.add('close');
+                    envelope.classList.remove('open');
+                }
+            }
+
+            updateEnvelope();
+            window.addEventListener('scroll', updateEnvelope, { passive: true });
+
+        })();
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,41 @@
+:root {
+  /* Palette */
+  --ivory: #f6f1e6;
+  --paper: #fffcf5;
+  --ink: #332d24;
+  --muted: #7d7264;
+  --clay: #b3705f;
+  --clay-soft: #cf9a8c;
+  --sage: #7c8768;
+  --gold: #a9895a;
+  --deep-brown: #34281f;
+  --line: rgba(51, 45, 36, 0.14);
+
+  /* Type */
+  --font-display: "EB Garamond", "Times New Roman", serif;
+  --font-script: "Great Vibes", "Alex Brush", cursive;
+  --font-body: "EB Garamond", "Times New Roman", serif;
+
+  /* Spacing scale */
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+  --space-5: 4rem;
+  --space-6: 6.5rem;
+
+  /* Layout */
+  --content-max: 68rem;
+  --measure: 34rem;
+  --radius-sm: 4px;
+  --radius-md: 10px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: light; /* invitation is intentionally always presented on paper tones */
+  }
+}
