@@ -10,7 +10,7 @@ export interface RSVPResult {
   error?: string;
 }
 
-const FORM_SUBMIT_ENDPOINT = "https://formsubmit.co/ajax/alitshrestha74@gmail.com";
+const FORM_SUBMIT_ENDPOINT = "https://formsubmit.co/ajax/shriti.khadka@gmail.com";
 
 export async function submitRSVP(data: RSVPData): Promise<RSVPResult> {
   try {
