@@ -71,7 +71,7 @@ export function MusicToggle({ src }: { src?: string }) {
 
       const elapsed = Math.min(time - previousTime, 50);
       previousTime = time;
-      autoScrollTarget.current = scrollElement.scrollTop + elapsed * 0.1;
+      autoScrollTarget.current = scrollElement.scrollTop + elapsed * 0.25;
       scrollElement.scrollTop = autoScrollTarget.current;
       autoScrollFrame.current = requestAnimationFrame(tick);
     };

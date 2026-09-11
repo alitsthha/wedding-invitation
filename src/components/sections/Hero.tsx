@@ -43,6 +43,7 @@ export function Hero({ monogram }: { monogram: string }) {
       <div ref={sceneRef} className="env" style={{ "--p": "0" } as React.CSSProperties}>
         <div className="envelope-reference" aria-label={`Wedding invitation envelope for ${monogram}`}>
           <div className="front">
+            <img className="envelope-corner envelope-corner--left" src="/disco.gif" alt="" aria-hidden="true" />
             <div className="mailme">
               <p className="mailme__names">Shreeti<br /><span>&amp;</span><br />Prayag</p>
               <div className="mailme__divider">
