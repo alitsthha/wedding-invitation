@@ -54,11 +54,12 @@ export function MusicToggle({ src }: { src?: string }) {
     setAutoScrollDone(false);
     setAutoScrollActive(true);
     document.documentElement.classList.add("is-autoscrolling");
-    autoScrollTarget.current = window.scrollY;
+    const scrollElement = document.scrollingElement ?? document.documentElement;
+    autoScrollTarget.current = scrollElement.scrollTop;
     let previousTime = performance.now();
 
     const tick = (time: number) => {
-      const atEnd = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 1;
+      const atEnd = scrollElement.scrollTop + scrollElement.clientHeight >= scrollElement.scrollHeight - 1;
       if (atEnd) {
         autoScrollFrame.current = null;
         autoScrollEnabled.current = false;
@@ -70,8 +71,8 @@ export function MusicToggle({ src }: { src?: string }) {
 
       const elapsed = Math.min(time - previousTime, 50);
       previousTime = time;
-      autoScrollTarget.current = window.scrollY + elapsed * 0.075;
-      window.scrollTo({ top: autoScrollTarget.current, behavior: "auto" });
+      autoScrollTarget.current = scrollElement.scrollTop + elapsed * 0.1;
+      scrollElement.scrollTop = autoScrollTarget.current;
       autoScrollFrame.current = requestAnimationFrame(tick);
     };
 
