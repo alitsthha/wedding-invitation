@@ -1,18 +1,24 @@
 import { useEffect, useRef } from "react";
 import { revealText } from "../../animations/sectionAnimations";
 import { Divider } from "../ui/Divider";
-import TextAnimation from "../ui/stagger-text";
 import type { Wedding } from "../../data/wedding";
 
 export function Timeline({ data }: { data: Wedding }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const listRef = useRef<HTMLOListElement>(null);
-  const itemRefs = useRef<HTMLLIElement[]>([]);
-    const lineRef = useRef<HTMLParagraphElement>(null);
+  const timeRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const labelRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const hugsRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
     const cleanups = [revealText(headingRef.current)];
-    return () => cleanups.forEach((c) => c());
+    data.timeline.forEach((_, i) => {
+      cleanups.push(
+        revealText(timeRefs.current[i], { delay: i * 0.2 }),
+        revealText(labelRefs.current[i], { delay: i * 0.2 + 0.08 }),
+      );
+    });
+    cleanups.push(revealText(hugsRef.current, { delay: data.timeline.length * 0.2 + 0.16 }));
+    return () => cleanups.forEach((cleanup) => cleanup());
   }, []);
 
   return (
@@ -22,25 +28,22 @@ export function Timeline({ data }: { data: Wedding }) {
         How the day unfolds
       </h2>
       <Divider />
-      <ol ref={listRef} className="timeline" style={{ textAlign: "left" }}>
+      <ol className="timeline" style={{ textAlign: "left" }}>
         {data.timeline.map((item, i) => (
           <li
             key={item.time}
             className="timeline__item"
-            ref={(el) => {
-              if (el) itemRefs.current[i] = el;
-            }}
           >
-            <div className="timeline__time">
-              <TextAnimation delay={i * 0.2}>{item.time}</TextAnimation>
+            <div ref={(element) => { timeRefs.current[i] = element; }} className="timeline__time">
+              {item.time}
             </div>
-            <div className="timeline__label font-display">
-              <TextAnimation delay={i * 0.2 + 0.08}>{item.label}</TextAnimation>
+            <div ref={(element) => { labelRefs.current[i] = element; }} className="timeline__label font-display">
+              {item.label}
             </div>
           </li>
         ))}
       </ol>
-        <p ref={lineRef} className="body-measure" style={{ marginInline: "auto", color: "var(--muted)" }}>
+        <p ref={hugsRef} className="body-measure" style={{ marginInline: "auto", color: "var(--muted)" }}>
             {data.hugs.line}
         </p>
     </section>

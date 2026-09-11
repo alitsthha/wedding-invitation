@@ -39,7 +39,7 @@ export const wedding = {
     heading: "The ceremony",
     time: "5:30 PM",
     venue: "Aarambha Banquet",
-    address: "Tripureswor inside Blue Bird Mallika ",
+    address: "Tripureswor inside Blue Bird Mall",
     mapUrl: "https://maps.app.goo.gl/EoghKYP6PeW21KXH9",
   },
   timeline: [

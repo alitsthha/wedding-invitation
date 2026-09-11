@@ -11,12 +11,28 @@ const defaultTrigger = (el: Element) => ({
 });
 
 /** Fade + translate upward — used for headings and body text. */
-export function revealText(el: Element | null, opts: { delay?: number } = {}) {
-  if (!el || prefersReducedMotion()) return () => {};
+export function revealText(
+  el: Element | null,
+  opts: { delay?: number; onComplete?: () => void; onReverseComplete?: () => void } = {}
+) {
+  if (!el) return () => {};
+  if (prefersReducedMotion()) {
+    opts.onComplete?.();
+    return () => {};
+  }
   const tween = gsap.fromTo(
     el,
     { opacity: 0, y: 28 },
-    { opacity: 1, y: 0, duration: 0.9, ease: "power3.out", delay: opts.delay ?? 0, scrollTrigger: defaultTrigger(el) }
+    {
+      opacity: 1,
+      y: 0,
+      duration: 0.9,
+      ease: "power3.out",
+      delay: opts.delay ?? 0,
+      onComplete: opts.onComplete,
+      onReverseComplete: opts.onReverseComplete,
+      scrollTrigger: defaultTrigger(el),
+    }
   );
   return () => tween.scrollTrigger?.kill();
 }

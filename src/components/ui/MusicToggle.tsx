@@ -70,8 +70,8 @@ export function MusicToggle({ src }: { src?: string }) {
 
       const elapsed = Math.min(time - previousTime, 50);
       previousTime = time;
-      autoScrollTarget.current += elapsed * 0.18;
-      window.scrollTo({ top: autoScrollTarget.current, behavior: "instant" });
+      autoScrollTarget.current = window.scrollY + elapsed * 0.075;
+      window.scrollTo({ top: autoScrollTarget.current, behavior: "auto" });
       autoScrollFrame.current = requestAnimationFrame(tick);
     };
 

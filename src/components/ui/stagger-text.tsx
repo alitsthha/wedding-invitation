@@ -26,10 +26,12 @@ const TextAnimation = ({
   children,
   delay = 0,
   divideBy = "word",
+  active,
 }: {
   children: React.ReactNode;
   delay?: number;
   divideBy?: "word" | "letter";
+  active?: boolean;
 }) => {
   if (typeof children !== "string") {
     if (typeof children === "number" || typeof children === "boolean") {
@@ -49,8 +51,9 @@ const TextAnimation = ({
     <motion.span
       variants={container(stagger, delay)}
       initial="hidden"
-      whileInView="show"
-      viewport={{ once: false, amount: 0.35 }}
+      animate={active === undefined ? undefined : active ? "show" : "hidden"}
+      whileInView={active === undefined ? "show" : undefined}
+      viewport={active === undefined ? { once: false, amount: 0.35 } : undefined}
       style={{ display: "inline-block" }}
     >
       {parts.map((part, i) => (
