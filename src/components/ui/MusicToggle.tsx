@@ -9,9 +9,12 @@ export function MusicToggle({ src }: { src?: string }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const autoScrollFrame = useRef<number | null>(null);
   const autoScrollRestart = useRef<number | null>(null);
+  const autoScrollTarget = useRef(0);
   const autoScrollEnabled = useRef(false);
   const [playing, setPlaying] = useState(false);
   const [started, setStarted] = useState(false);
+  const [autoScrollActive, setAutoScrollActive] = useState(false);
+  const [autoScrollDone, setAutoScrollDone] = useState(false);
 
   const start = useCallback(async () => {
     const audio = audioRef.current;
@@ -48,15 +51,27 @@ export function MusicToggle({ src }: { src?: string }) {
 
   const startAutoScroll = useCallback(() => {
     stopAutoScroll();
+    setAutoScrollDone(false);
+    setAutoScrollActive(true);
+    document.documentElement.classList.add("is-autoscrolling");
+    autoScrollTarget.current = window.scrollY;
+    let previousTime = performance.now();
 
-    const tick = () => {
+    const tick = (time: number) => {
       const atEnd = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 1;
       if (atEnd) {
         autoScrollFrame.current = null;
+        autoScrollEnabled.current = false;
+        setAutoScrollActive(false);
+        document.documentElement.classList.remove("is-autoscrolling");
+        setAutoScrollDone(true);
         return;
       }
 
-      window.scrollBy(0, 3);
+      const elapsed = Math.min(time - previousTime, 50);
+      previousTime = time;
+      autoScrollTarget.current += elapsed * 0.18;
+      window.scrollTo({ top: autoScrollTarget.current, behavior: "instant" });
       autoScrollFrame.current = requestAnimationFrame(tick);
     };
 
@@ -64,12 +79,15 @@ export function MusicToggle({ src }: { src?: string }) {
   }, [stopAutoScroll]);
 
   useEffect(() => {
-    const events = ["wheel", "touchmove", "keydown"] as const;
+    const events = ["wheel", "touchmove", "keydown", "pointerdown"] as const;
     const onInteraction = (event: Event) => {
       const target = event.target;
       if (target instanceof Element && target.closest(".music-toggle")) return;
       stopAutoScroll();
       clearAutoScrollRestart();
+      setAutoScrollActive(false);
+      setAutoScrollDone(false);
+      document.documentElement.classList.remove("is-autoscrolling");
 
       if (autoScrollEnabled.current) {
         autoScrollRestart.current = window.setTimeout(() => {
@@ -85,6 +103,9 @@ export function MusicToggle({ src }: { src?: string }) {
       events.forEach((event) => window.removeEventListener(event, onInteraction));
       stopAutoScroll();
       clearAutoScrollRestart();
+      setAutoScrollActive(false);
+      setAutoScrollDone(false);
+      document.documentElement.classList.remove("is-autoscrolling");
     };
   }, [clearAutoScrollRestart, startAutoScroll, stopAutoScroll]);
 
@@ -101,6 +122,9 @@ export function MusicToggle({ src }: { src?: string }) {
       autoScrollEnabled.current = false;
       stopAutoScroll();
       clearAutoScrollRestart();
+      setAutoScrollActive(false);
+      setAutoScrollDone(false);
+      document.documentElement.classList.remove("is-autoscrolling");
     };
 
     window.addEventListener(MUSIC_START_EVENT, handleMusicStart);
@@ -136,6 +160,8 @@ export function MusicToggle({ src }: { src?: string }) {
         >
           {playing ? <Pause size={18} /> : <Music size={18} />}
         </button>}
+        {autoScrollActive && <p className="auto-scroll-status auto-scroll-status--active">Scrolling through the celebration</p>}
+        {autoScrollDone && <p className="auto-scroll-status" role="status">You have reached the end</p>}
       </>
   );
 }

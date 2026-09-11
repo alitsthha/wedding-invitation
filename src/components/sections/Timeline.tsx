@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
-import { revealText, revealSequence } from "../../animations/sectionAnimations";
+import { revealText } from "../../animations/sectionAnimations";
 import { Divider } from "../ui/Divider";
+import TextAnimation from "../ui/stagger-text";
 import type { Wedding } from "../../data/wedding";
 
 export function Timeline({ data }: { data: Wedding }) {
@@ -10,10 +11,7 @@ export function Timeline({ data }: { data: Wedding }) {
     const lineRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
-    const cleanups = [
-      revealText(headingRef.current),
-      revealSequence(itemRefs.current, listRef.current, { duration: 5, stagger: 0.22, scrub: 0.8 }),
-    ];
+    const cleanups = [revealText(headingRef.current)];
     return () => cleanups.forEach((c) => c());
   }, []);
 
@@ -33,8 +31,12 @@ export function Timeline({ data }: { data: Wedding }) {
               if (el) itemRefs.current[i] = el;
             }}
           >
-            <div className="timeline__time">{item.time}</div>
-            <div className="timeline__label font-display">{item.label}</div>
+            <div className="timeline__time">
+              <TextAnimation delay={i * 0.2}>{item.time}</TextAnimation>
+            </div>
+            <div className="timeline__label font-display">
+              <TextAnimation delay={i * 0.2 + 0.08}>{item.label}</TextAnimation>
+            </div>
           </li>
         ))}
       </ol>
