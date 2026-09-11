@@ -1072,17 +1072,26 @@ button {
 .invitation-start {
   position: relative;
   z-index: 4;
-  min-width: 7rem;
-  margin-top: 1rem;
-  padding: 0.7rem 1.4rem;
+  min-width: clamp(7rem, 24vw, 9rem);
+  margin-top: clamp(0.75rem, 1.5vw, 1.25rem);
+  padding: clamp(0.5rem, 1.2vw, 0.5rem) clamp(0.55rem, 2vw, 1rem);
   border: 1px solid #382F2D;
   border-radius: 999px;
   background: rgba(24, 14, 28, 0.8);
   color: #ffe491;
   cursor: pointer;
   font: inherit;
+  font-size: clamp(0.58rem, 2cqi, 0.7rem);
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.invitation-start:hover {
+  background: rgba(24, 14, 28, 0.95);
+  transform: translateY(-2px);
+}
+.invitation-start:active {
+  transform: translateY(0) scale(0.98);
 }
 .music-toggle:hover {
   transform: translateY(-2px) scale(1.05);
@@ -1137,9 +1146,10 @@ button {
 
 /* Reference envelope animation: front cover, reverse-side flaps, and rising letter. */
 .envelope-reference {
-  --envelope-w: min(210vw, 680px);
+  --envelope-w: min(92vw, 680px);
   --envelope-h: calc(var(--envelope-w) * 0.6666667);
-  --cover-drop: calc(clamp(0, (var(--p) - 0.52) / 0.20, 1) * var(--envelope-h) * 2);
+  --turn: clamp(0, (var(--p) - 0.08) / 0.36, 1);
+  --cover-drop: calc(clamp(0, (var(--p) - 0.64) / 0.24, 1) * var(--envelope-h) * 1.2);
   position: absolute;
   top: 50%;
   left: 50%;
@@ -1149,7 +1159,8 @@ button {
   transform-origin: center center;
   transform:
     translate(-50%, calc(-50% + var(--cover-drop)))
-    rotateY(calc(clamp(0, var(--p) / 0.333333, 1) * -180deg));
+    rotateZ(calc(var(--turn) * -2deg))
+    rotateY(calc(var(--turn) * -180deg));
   color: #1f1f1f;
   font-family: var(--font-body);
   z-index: 10;
@@ -1220,7 +1231,7 @@ button {
   margin-top: 0.7rem !important;
   color: #362e11;
   font-family: var(--font-script);
-  font-size: clamp(1.8rem, 7cqi, 3.8rem);
+  font-size: clamp(1rem, 6cqi, 3rem);
   line-height: 1.25;
 }
 
@@ -1323,9 +1334,9 @@ button {
 }
 
 .envelope-reference .top-flap {
-  z-index: calc(5 - clamp(0, (var(--p) - 0.333333) / 0.333333, 1) * 6);
+  z-index: calc(5 - clamp(0, (var(--p) - 0.46) / 0.24, 1) * 6);
   transform-origin: top center;
-  transform: rotateX(calc(clamp(0, (var(--p) - 0.333333) / 0.333333, 1) * -180deg));
+  transform: rotateX(calc(clamp(0, (var(--p) - 0.46) / 0.24, 1) * -180deg));
 }
 
 .envelope-reference .top-flap::before,
@@ -1388,9 +1399,9 @@ button {
 }
 
 .envelope-reference .letter {
-  --letter-open: clamp(0, (var(--p) - 0.30) / 0.31, 1);
-  --letter-fill: clamp(0, (var(--p) - 0.68) / 0.32, 1);
-  --letter-content: clamp(0, (var(--p) - 0.66) / 0.10, 1);
+  --letter-open: clamp(0, (var(--p) - 0.40) / 0.32, 1);
+  --letter-fill: clamp(0, (var(--p) - 0.72) / 0.28, 1);
+  --letter-content: clamp(0, (var(--p) - 0.64) / 0.18, 1);
   --letter-height: calc(
     var(--envelope-h) * 0.9 +
     var(--letter-fill) * (100svh - var(--envelope-h) * 0.9)
@@ -1427,7 +1438,7 @@ button {
       0
     )
     translateX(-50%)
-    scale(calc(0.9 + var(--letter-open) * 0.1));
+    scale(calc(0.86 + var(--letter-open) * 0.14));
 }
 
 .envelope-reference .letter::before {
@@ -1556,7 +1567,20 @@ button {
 
 @media (max-width: 600px) {
   .envelope-reference {
-    --envelope-w: 96vw;
+    --envelope-w: 94vw;
+  }
+
+  .envelope-reference .mailme {
+    transform: translateY(-0.65rem);
+  }
+
+  .envelope-reference .mailme__divider {
+    margin-block: 0.85rem 0.65rem;
+  }
+
+  .envelope-reference .invitation-start {
+    min-width: 7rem;
+    padding-inline: 0.55rem;
   }
 
   .envelope-reference .stamp {

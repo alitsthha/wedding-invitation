@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { useInvitationAnimation } from "../../hooks/useInvitationAnimation";
-import { useDeviceTier } from "../../hooks/useMediaQuery";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { MUSIC_START_EVENT } from "../ui/MusicToggle";
 
@@ -10,12 +9,10 @@ export function Hero({ monogram }: { monogram: string }) {
   const hintRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
-  const deviceTier = useDeviceTier();
 
-  const { progressRef } = useInvitationAnimation({
+  const { progressRef, open } = useInvitationAnimation({
     hostRef,
     hintRef,
-    scrollLengthVh: deviceTier === "mobile" ? 280 : 400,
   });
 
   // RAF loop: read progressRef and push to CSS custom property
@@ -53,8 +50,18 @@ export function Hero({ monogram }: { monogram: string }) {
                 <span className="mailme__icon">❦</span>
                 <div className="mailme__rule__back" aria-hidden="true" />
               </div>
-              <p className="mailme__details">12 October 2026</p>
+              <p className="mailme__details">13 October 2026</p>
               <p className="mailme__details">Arambha Banquet</p>
+              <button
+                type="button"
+                className="invitation-start"
+                onClick={() => {
+                  window.dispatchEvent(new Event(MUSIC_START_EVENT));
+                  open();
+                }}
+              >
+                Open invitation
+              </button>
             </div>
           </div>
           <div className="back">
@@ -63,15 +70,8 @@ export function Hero({ monogram }: { monogram: string }) {
               <div className="letter-inner">
                 <p className="letter-eyebrow">WE’RE GETTING MARRIED</p>
                 <h2>Shreeti<br /><span>&amp;</span><br />Prayag</h2>
-                <p className="letter-event">An evening to celebrate love, laughter & a beautiful new chapter.</p>
+                <p className="letter-event">HAPPILY EVER AFTER PARTY</p>
                 <p className="letter-families">The Khadka Family&nbsp; &amp; &nbsp;The Gurung Family</p>
-                <button
-                  type="button"
-                  className="invitation-start"
-                  onClick={() => window.dispatchEvent(new Event(MUSIC_START_EVENT))}
-                >
-                  Open invitation
-                </button>
               </div>
             </div>
             <div className="flap left-flap" />
@@ -84,7 +84,7 @@ export function Hero({ monogram }: { monogram: string }) {
 
       {/* Scroll hint */}
       <div ref={hintRef} className="env__hint">
-        <span>Scroll to open</span>
+        <span>Open your invitation</span>
         <ChevronDown size={20} aria-hidden="true" />
       </div>
     </section>

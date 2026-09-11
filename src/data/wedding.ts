@@ -14,11 +14,11 @@ export const wedding = {
     monogram: "S & P",
   },
   date: {
-    display: "12 October 2026",
-    day: "12",
+    display: "13 October 2026",
+    day: "13",
     month: "October",
     year: "2026",
-    iso: "2026-10-12",
+    iso: "2026-10-13",
   },
   fullname: {
     partnerOne: "Shreeti Khadka",
@@ -26,8 +26,8 @@ export const wedding = {
   },
   intro: {
     eyebrow: "WITH THE BLESSINGS & LOVE OF OUR FAMILIES",
-    partnerOne: "Daughter of Apsara Khadka & Ramesh Khadka and the Khadka Family",
-    partnerTwo: "Son of Late Pratap Singh Gurung & Aruna Gurung and the Gurung Family",
+    partnerOne: "Daughter of Apsara Khadka & Ramesh Khadka ",
+    partnerTwo: "Son of Late Pratap Singh Gurung & Aruna Gurung ",
     invite: "invite you to join them for an evening of celebration as they begin their happily ever after.",
     begin: "After an intimate wedding celebration with family, we would love to celebrate this beautiful new beginning with our family and friends.",
   },

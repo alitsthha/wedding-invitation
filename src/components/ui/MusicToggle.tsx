@@ -2,10 +2,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Music, Pause } from "lucide-react";
 
 export const MUSIC_START_EVENT = "invitation-start-music";
+export const AUTOSCROLL_START_EVENT = "invitation-start-autoscroll";
+export const AUTOSCROLL_STOP_EVENT = "invitation-stop-autoscroll";
 
 export function MusicToggle({ src }: { src?: string }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const autoScrollFrame = useRef<number | null>(null);
+  const autoScrollRestart = useRef<number | null>(null);
+  const autoScrollEnabled = useRef(false);
   const [playing, setPlaying] = useState(false);
   const [started, setStarted] = useState(false);
 
@@ -35,6 +39,13 @@ export function MusicToggle({ src }: { src?: string }) {
     }
   }, []);
 
+  const clearAutoScrollRestart = useCallback(() => {
+    if (autoScrollRestart.current !== null) {
+      window.clearTimeout(autoScrollRestart.current);
+      autoScrollRestart.current = null;
+    }
+  }, []);
+
   const startAutoScroll = useCallback(() => {
     stopAutoScroll();
 
@@ -45,7 +56,7 @@ export function MusicToggle({ src }: { src?: string }) {
         return;
       }
 
-      window.scrollBy(0, 0.65);
+      window.scrollBy(0, 1);
       autoScrollFrame.current = requestAnimationFrame(tick);
     };
 
@@ -58,6 +69,14 @@ export function MusicToggle({ src }: { src?: string }) {
       const target = event.target;
       if (target instanceof Element && target.closest(".music-toggle")) return;
       stopAutoScroll();
+      clearAutoScrollRestart();
+
+      if (autoScrollEnabled.current) {
+        autoScrollRestart.current = window.setTimeout(() => {
+          autoScrollRestart.current = null;
+          startAutoScroll();
+        }, 5000);
+      }
     };
 
     events.forEach((event) => window.addEventListener(event, onInteraction, { passive: true }));
@@ -65,18 +84,34 @@ export function MusicToggle({ src }: { src?: string }) {
     return () => {
       events.forEach((event) => window.removeEventListener(event, onInteraction));
       stopAutoScroll();
+      clearAutoScrollRestart();
     };
-  }, [stopAutoScroll]);
+  }, [clearAutoScrollRestart, startAutoScroll, stopAutoScroll]);
 
   useEffect(() => {
-    const handleStart = async () => {
+    const handleMusicStart = async () => {
       const started = await start();
-      if (started) startAutoScroll();
+      if (!started) setPlaying(false);
+    };
+    const handleAutoScrollStart = () => {
+      autoScrollEnabled.current = true;
+      startAutoScroll();
+    };
+    const handleAutoScrollStop = () => {
+      autoScrollEnabled.current = false;
+      stopAutoScroll();
+      clearAutoScrollRestart();
     };
 
-    window.addEventListener(MUSIC_START_EVENT, handleStart);
-    return () => window.removeEventListener(MUSIC_START_EVENT, handleStart);
-  }, [start, startAutoScroll]);
+    window.addEventListener(MUSIC_START_EVENT, handleMusicStart);
+    window.addEventListener(AUTOSCROLL_START_EVENT, handleAutoScrollStart);
+    window.addEventListener(AUTOSCROLL_STOP_EVENT, handleAutoScrollStop);
+    return () => {
+      window.removeEventListener(MUSIC_START_EVENT, handleMusicStart);
+      window.removeEventListener(AUTOSCROLL_START_EVENT, handleAutoScrollStart);
+      window.removeEventListener(AUTOSCROLL_STOP_EVENT, handleAutoScrollStop);
+    };
+  }, [clearAutoScrollRestart, start, startAutoScroll, stopAutoScroll]);
 
   if (!src) return null;
 

@@ -1,8 +1,5 @@
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { prefersReducedMotion } from "./reducedMotion";
-
-gsap.registerPlugin(ScrollTrigger);
 
 export interface OpeningProgressRef {
   /** 0 -> closed envelope, 1 -> invitation fully revealed. Read this every frame in R3F, never via setState. */
@@ -10,49 +7,44 @@ export interface OpeningProgressRef {
 }
 
 export interface OpeningTimelineOptions {
-  /** The tall pinned host element the ScrollTrigger pins/scrubs against. */
+  /** The hero element that owns the opening interaction. */
   host: HTMLElement;
-  /** Overlay DOM node containing the "Scroll to open" hint. */
+  /** Overlay DOM node containing the opening hint. */
   hint: HTMLElement | null;
-  /** Scroll distance (in viewport heights) the whole opening sequence consumes. */
-  scrollLengthVh?: number;
   onUpdate?: (progress: number) => void;
+  onComplete?: () => void;
+  onReverseComplete?: () => void;
 }
 
 /**
- * Builds the one centralized scroll timeline that drives the entire
- * envelope -> card -> full page transformation. All visual phases are
- * derived from timeline progress (0..1), never from setTimeout or fixed
- * durations, so scrubbing forward/backward/fast/slow stays in sync.
+ * Builds the one centralized timeline that drives the entire envelope -> card
+ * transformation. Visual phases are derived from progress (0..1), so the
+ * same animation can be played by the invitation button and reversed by an
+ * upward scroll gesture.
  */
 export function createOpeningTimeline(
   progressRef: OpeningProgressRef,
   options: OpeningTimelineOptions
 ) {
-  const { host, hint, scrollLengthVh = 350, onUpdate } = options;
+  const { host, hint, onUpdate, onComplete, onReverseComplete } = options;
+  void host;
 
   if (prefersReducedMotion()) {
-    // Reduced motion: skip the pinned scroll sequence entirely, show the
-    // invitation directly, keep the hint hidden.
     progressRef.value = 1;
     onUpdate?.(1);
     if (hint) gsap.set(hint, { opacity: 0 });
-    return { scrollTrigger: null as ScrollTrigger | null, kill: () => {} };
+    onComplete?.();
+    return { play: () => {}, reverse: () => {}, kill: () => {} };
   }
 
   const tl = gsap.timeline({
-    scrollTrigger: {
-      trigger: host,
-      start: "top top",
-      end: `+=${scrollLengthVh}%`,
-      scrub: 0.85,
-      pin: true,
-      anticipatePin: 1,
-      onUpdate: (self) => {
-        progressRef.value = self.progress;
-        onUpdate?.(self.progress);
-      },
+    paused: true,
+    onUpdate: () => {
+      progressRef.value = tl.progress();
+      onUpdate?.(tl.progress());
     },
+    onComplete,
+    onReverseComplete,
   });
 
   if (hint) {
@@ -60,16 +52,14 @@ export function createOpeningTimeline(
     tl.to(hint, { opacity: 0, duration: 0.06 }, 0);
   }
 
-  // A no-op tween just to give the timeline a duration to scrub across;
-  // the actual visual work happens in the Three.js scene reading progressRef.
-  tl.to({}, { duration: 1 });
+  // Give each physical action enough time to read instead of rushing through
+  // the turn, flap, and letter reveal in a single beat.
+  tl.to({}, { duration: 9, ease: "none" });
 
   return {
-    scrollTrigger: tl.scrollTrigger as ScrollTrigger,
-    kill: () => {
-      tl.scrollTrigger?.kill();
-      tl.kill();
-    },
+    play: () => tl.play(),
+    reverse: () => tl.reverse(),
+    kill: () => tl.kill(),
   };
 }
 

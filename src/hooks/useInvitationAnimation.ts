@@ -1,13 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   createOpeningTimeline,
   type OpeningProgressRef,
 } from "../animations/envelopeTimeline";
+import {
+  AUTOSCROLL_START_EVENT,
+  AUTOSCROLL_STOP_EVENT,
+} from "../components/ui/MusicToggle";
 
 interface UseInvitationAnimationArgs {
   hostRef: React.RefObject<HTMLElement | null>;
   hintRef: React.RefObject<HTMLElement | null>;
-  scrollLengthVh?: number;
 }
 
 interface UseInvitationAnimationResult {
@@ -15,25 +18,38 @@ interface UseInvitationAnimationResult {
   progressRef: React.RefObject<OpeningProgressRef>;
   /** True once the opening has substantially completed; used to reveal the nav bar. */
   revealed: boolean;
+  open: () => void;
 }
 
 export function useInvitationAnimation({
   hostRef,
   hintRef,
-  scrollLengthVh = 350,
 }: UseInvitationAnimationArgs): UseInvitationAnimationResult {
   const progressRef = useRef<OpeningProgressRef>({ value: 0 });
   const [revealed, setRevealed] = useState(false);
   const revealedFired = useRef(false);
+  const timelineRef = useRef<ReturnType<typeof createOpeningTimeline> | null>(null);
+  const openedRef = useRef(false);
+  const lockedRef = useRef(true);
+
+  const setScrollLocked = useCallback((locked: boolean) => {
+    document.documentElement.style.overflow = locked ? "hidden" : "";
+    document.body.style.overflow = locked ? "hidden" : "";
+    lockedRef.current = locked;
+  }, []);
+
+  const open = useCallback(() => {
+    openedRef.current = true;
+    timelineRef.current?.play();
+  }, []);
 
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
 
-    const { kill } = createOpeningTimeline(progressRef.current, {
+    const timeline = createOpeningTimeline(progressRef.current, {
       host,
       hint: hintRef.current,
-      scrollLengthVh,
       onUpdate: (progress) => {
         // Only reveal nav after card has completely filled viewport
         if (!revealedFired.current && progress > 0.95) {
@@ -44,16 +60,45 @@ export function useInvitationAnimation({
           setRevealed(false);
         }
       },
+      onComplete: () => {
+        setScrollLocked(false);
+        window.dispatchEvent(new Event(AUTOSCROLL_START_EVENT));
+      },
+      onReverseComplete: () => {
+        openedRef.current = false;
+        setScrollLocked(true);
+        window.dispatchEvent(new Event(AUTOSCROLL_STOP_EVENT));
+      },
     });
+    timelineRef.current = timeline;
+    setScrollLocked(progressRef.current.value < 1);
 
-    // Reduced-motion path resolves progress to 1 synchronously.
     if (progressRef.current.value === 1) {
       setRevealed(true);
     }
 
-    return () => kill();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const handleWheel = (event: WheelEvent) => {
+      if (lockedRef.current) {
+        event.preventDefault();
+        return;
+      }
 
-  return { progressRef, revealed };
+      if (event.deltaY < 0 && window.scrollY <= 1 && !lockedRef.current) {
+        event.preventDefault();
+        setScrollLocked(true);
+        timeline.reverse();
+      }
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+      timeline.kill();
+      timelineRef.current = null;
+      setScrollLocked(false);
+    };
+  }, [setScrollLocked]);
+
+  return { progressRef, revealed, open };
 }
