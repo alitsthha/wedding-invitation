@@ -56,7 +56,7 @@ export function MusicToggle({ src }: { src?: string }) {
         return;
       }
 
-      window.scrollBy(0, 1);
+      window.scrollBy(0, 3);
       autoScrollFrame.current = requestAnimationFrame(tick);
     };
 

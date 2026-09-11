@@ -1159,7 +1159,6 @@ button {
   transform-origin: center center;
   transform:
     translate(-50%, calc(-50% + var(--cover-drop)))
-    rotateZ(calc(var(--turn) * -2deg))
     rotateY(calc(var(--turn) * -180deg));
   color: #1f1f1f;
   font-family: var(--font-body);
@@ -1438,6 +1437,7 @@ button {
       0
     )
     translateX(-50%)
+    rotateZ(0deg)
     scale(calc(0.86 + var(--letter-open) * 0.14));
 }
 
