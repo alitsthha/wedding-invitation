@@ -15,6 +15,7 @@ export function MusicToggle({ src }: { src?: string }) {
   const autoScrollRestart = useRef<number | null>(null);
   const lenisRef = useRef<Lenis | null>(null);
   const autoScrollEnabled = useRef(false);
+  const invitationOpen = useRef(false);
   const [playing, setPlaying] = useState(false);
   const [started, setStarted] = useState(false);
   const [autoScrollActive, setAutoScrollActive] = useState(false);
@@ -84,6 +85,7 @@ export function MusicToggle({ src }: { src?: string }) {
       respectReducedMotion: true,
     });
     lenisRef.current = lenis;
+    lenis.stop();
 
     const animate = (time: number) => {
       lenis.raf(time);
@@ -104,6 +106,7 @@ export function MusicToggle({ src }: { src?: string }) {
     const onInteraction = (event: Event) => {
       const target = event.target;
       if (target instanceof Element && target.closest(".music-toggle")) return;
+      if (!invitationOpen.current) return;
       const isDirectScrollInput = event.type === "wheel" || event.type === "touchmove";
       if (!isDirectScrollInput) stopAutoScroll();
       clearAutoScrollRestart();
@@ -147,12 +150,15 @@ export function MusicToggle({ src }: { src?: string }) {
       if (!started) setPlaying(false);
     };
     const handleAutoScrollStart = () => {
+      invitationOpen.current = true;
       autoScrollEnabled.current = true;
       startAutoScroll();
     };
     const handleAutoScrollStop = () => {
+      invitationOpen.current = false;
       autoScrollEnabled.current = false;
       stopAutoScroll();
+      lenisRef.current?.stop();
       clearAutoScrollRestart();
       setAutoScrollActive(false);
       setAutoScrollDone(false);
