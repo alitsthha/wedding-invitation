@@ -1,15 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Music, Pause } from "lucide-react";
+import Lenis from "lenis";
 
 export const MUSIC_START_EVENT = "invitation-start-music";
 export const AUTOSCROLL_START_EVENT = "invitation-start-autoscroll";
 export const AUTOSCROLL_STOP_EVENT = "invitation-stop-autoscroll";
 
+const AUTO_SCROLL_PIXELS_PER_SECOND = 120;
+const AUTO_SCROLL_RESUME_DELAY_MS = 5000;
+
 export function MusicToggle({ src }: { src?: string }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const autoScrollFrame = useRef<number | null>(null);
   const autoScrollRestart = useRef<number | null>(null);
-  const autoScrollTarget = useRef(0);
+  const lenisRef = useRef<Lenis | null>(null);
   const autoScrollEnabled = useRef(false);
   const [playing, setPlaying] = useState(false);
   const [started, setStarted] = useState(false);
@@ -36,10 +40,11 @@ export function MusicToggle({ src }: { src?: string }) {
   }, []);
 
   const stopAutoScroll = useCallback(() => {
-    if (autoScrollFrame.current !== null) {
-      cancelAnimationFrame(autoScrollFrame.current);
-      autoScrollFrame.current = null;
-    }
+    const lenis = lenisRef.current;
+    if (!lenis) return;
+    lenis.scrollTo(lenis.scroll, { immediate: true, force: true });
+    lenis.start();
+    document.documentElement.classList.remove("is-autoscrolling");
   }, []);
 
   const clearAutoScrollRestart = useCallback(() => {
@@ -54,56 +59,82 @@ export function MusicToggle({ src }: { src?: string }) {
     setAutoScrollDone(false);
     setAutoScrollActive(true);
     document.documentElement.classList.add("is-autoscrolling");
-    const scrollElement = document.scrollingElement ?? document.documentElement;
-    autoScrollTarget.current = scrollElement.scrollTop;
-    let previousTime = performance.now();
-
-    const tick = (time: number) => {
-      const atEnd = scrollElement.scrollTop + scrollElement.clientHeight >= scrollElement.scrollHeight - 1;
-      if (atEnd) {
-        autoScrollFrame.current = null;
+    const lenis = lenisRef.current;
+    if (!lenis) return;
+    lenis.start();
+    const distance = Math.max(lenis.limit - lenis.scroll, 1);
+    lenis.scrollTo(lenis.limit, {
+      duration: distance / AUTO_SCROLL_PIXELS_PER_SECOND,
+      easing: (progress) => progress,
+      programmatic: true,
+      onComplete: () => {
         autoScrollEnabled.current = false;
         setAutoScrollActive(false);
         document.documentElement.classList.remove("is-autoscrolling");
         setAutoScrollDone(true);
-        return;
-      }
-
-      const elapsed = Math.min(time - previousTime, 50);
-      previousTime = time;
-      autoScrollTarget.current = scrollElement.scrollTop + elapsed * 0.25;
-      scrollElement.scrollTop = autoScrollTarget.current;
-      autoScrollFrame.current = requestAnimationFrame(tick);
-    };
-
-    autoScrollFrame.current = requestAnimationFrame(tick);
+      },
+    });
   }, [stopAutoScroll]);
 
   useEffect(() => {
+    const lenis = new Lenis({
+      autoRaf: false,
+      smoothWheel: true,
+      syncTouch: true,
+      respectReducedMotion: true,
+    });
+    lenisRef.current = lenis;
+
+    const animate = (time: number) => {
+      lenis.raf(time);
+      autoScrollFrame.current = requestAnimationFrame(animate);
+    };
+    autoScrollFrame.current = requestAnimationFrame(animate);
+
     const events = ["wheel", "touchmove", "keydown", "pointerdown"] as const;
+    const scheduleAutoScrollResume = () => {
+      if (!autoScrollEnabled.current) return;
+      clearAutoScrollRestart();
+      autoScrollRestart.current = window.setTimeout(() => {
+        autoScrollRestart.current = null;
+        startAutoScroll();
+      }, AUTO_SCROLL_RESUME_DELAY_MS);
+    };
+
     const onInteraction = (event: Event) => {
       const target = event.target;
       if (target instanceof Element && target.closest(".music-toggle")) return;
-      stopAutoScroll();
+      const isDirectScrollInput = event.type === "wheel" || event.type === "touchmove";
+      if (!isDirectScrollInput) stopAutoScroll();
       clearAutoScrollRestart();
       setAutoScrollActive(false);
       setAutoScrollDone(false);
       document.documentElement.classList.remove("is-autoscrolling");
+      scheduleAutoScrollResume();
+    };
 
-      if (autoScrollEnabled.current) {
-        autoScrollRestart.current = window.setTimeout(() => {
-          autoScrollRestart.current = null;
-          startAutoScroll();
-        }, 5000);
-      }
+    const onVirtualScroll = () => {
+      if (!autoScrollEnabled.current) return;
+      clearAutoScrollRestart();
+      setAutoScrollActive(false);
+      setAutoScrollDone(false);
+      scheduleAutoScrollResume();
     };
 
     events.forEach((event) => window.addEventListener(event, onInteraction, { passive: true }));
+    lenis.on("virtual-scroll", onVirtualScroll);
 
     return () => {
       events.forEach((event) => window.removeEventListener(event, onInteraction));
+      lenis.off("virtual-scroll", onVirtualScroll);
       stopAutoScroll();
       clearAutoScrollRestart();
+      if (autoScrollFrame.current !== null) {
+        cancelAnimationFrame(autoScrollFrame.current);
+        autoScrollFrame.current = null;
+      }
+      lenis.destroy();
+      lenisRef.current = null;
       setAutoScrollActive(false);
       setAutoScrollDone(false);
       document.documentElement.classList.remove("is-autoscrolling");
