@@ -135,7 +135,7 @@ export const InvitationCard3D = forwardRef<Group, InvitationCard3DProps>(functio
         anchorY="middle"
         letterSpacing={0.06}
       >
-        12 · OCTOBER · 2026
+        13 · OCTOBER · 2026
       </Text>
 
       {/* Small bottom flourish */}
