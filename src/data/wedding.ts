@@ -51,7 +51,7 @@ export const wedding = {
     { time: "8:30 - 9:30 PM", label: "Dinner • Drinks • Good Company\n" +
           "(Dinner & snacks will be available throughout the evening,\n" +
           "please feel free to eat whenever you’re hungry.)" },
-    { time: "9:30 - 10:00 PM", label: "Games with the Bartenders" },
+    { time: "9:30 - 10:00 PM", label: "The Party Continues" },
     { time: "10:00 - 11:00 PM", label: "Open Floor • Dance • Have Fun" },
   ] as TimelineItem[],
   hugs: {
