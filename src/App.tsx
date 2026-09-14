@@ -3,7 +3,7 @@ import { Introduction } from "./components/sections/Introduction";
 import { SaveTheDate } from "./components/sections/SaveTheDate";
 import { Ceremony } from "./components/sections/Ceremony";
 import { Timeline } from "./components/sections/Timeline";
-import { RSVP } from "./components/sections/RSVP";
+//import { RSVP } from "./components/sections/RSVP";
 import { Closing } from "./components/sections/Closing";
 import { Footer } from "./components/sections/Footer";
 import { MusicToggle } from "./components/ui/MusicToggle";
@@ -24,7 +24,7 @@ function App() {
         <SaveTheDate data={wedding} />
         <Ceremony data={wedding} />
         <Timeline data={wedding} />
-        <RSVP />
+       // <RSVP />
         <Closing data={wedding} />
       </main>
       <Footer data={wedding} />
