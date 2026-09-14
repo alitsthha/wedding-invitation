@@ -65,7 +65,6 @@ export const wedding = {
     { id: "home", label: "Home" },
     { id: "story", label: "Story" },
     { id: "details", label: "Details" },
-    { id: "rsvp", label: "RSVP" },
   ],
 };
 
