@@ -24,7 +24,7 @@ function App() {
         <SaveTheDate data={wedding} />
         <Ceremony data={wedding} />
         <Timeline data={wedding} />
-       // <RSVP />
+        {/* <RSVP /> */}
         <Closing data={wedding} />
       </main>
       <Footer data={wedding} />
